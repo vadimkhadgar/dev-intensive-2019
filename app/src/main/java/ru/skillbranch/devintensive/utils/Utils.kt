@@ -2,12 +2,13 @@ package ru.skillbranch.devintensive.utils
 
 object Utils {
 
-    fun parseFullName(fullname: String?): Pair<String?, String?> {
-        val parts: List<String>? = fullname?.split(" ")
+    fun parseFullName(fullName: String?): Pair<String?, String?> {
+        val parts: List<String>? = fullName?.split(" ")
 
-        val firstName = parts?.getOrNull(0)
-        val lastName = parts?.getOrNull(1)
-        return firstName to lastName
+        if (fullName.isNullOrBlank())
+            return Pair(null, null)
+
+        return Pair(parts?.getOrNull(0), parts?.getOrNull(1))
     }
 
     fun transliteration(payLoad: String, divider: String = " "): String {
@@ -56,34 +57,16 @@ object Utils {
     }
 
     fun toInitials(firstName: String?, lastName: String?): String? {
-        if (firstName.isNullOrEmpty() && lastName.isNullOrEmpty() || firstName === " " && lastName === " ") {
+        if (firstName.isNullOrBlank() && lastName.isNullOrBlank())
             return null
-        } else if (firstName === " " && lastName.isNullOrEmpty() || firstName.isNullOrEmpty() && lastName === " ") {
-            return null
-        } else if (firstName!!.isNotEmpty() && lastName.isNullOrEmpty()) {
-            val character = firstName[0]
-            if (character.isLowerCase()) {
-                character.toUpperCase()
-            }
-            return character.toString()
-        } else if (firstName.isNullOrEmpty() && lastName!!.isNotEmpty()) {
-            val character = lastName[0]
-            if (character.isLowerCase()) {
-                character.toUpperCase()
-            }
-            return character.toString()
-        } else if (firstName.isNotEmpty() && lastName!!.isNotEmpty()) {
-            val characterFirstName = firstName[0]
-            if (characterFirstName.isLowerCase()) {
-                characterFirstName.toUpperCase()
-            }
-            val characterLastName = lastName[0]
-            if (characterLastName.isLowerCase()) {
-                characterLastName.toUpperCase()
-            }
-            val nickName = characterFirstName.toString() + characterLastName.toString()
-            return nickName
-        }
-        return this.toString()
+
+        val fNameInitial = firstName?.first()
+        val lNameInitial = lastName?.first()
+
+        return (when {
+            fNameInitial == null -> "$lNameInitial"
+            lNameInitial == null -> "$fNameInitial"
+            else -> "$fNameInitial$lNameInitial"
+        }).toUpperCase()
     }
-}
+    }
