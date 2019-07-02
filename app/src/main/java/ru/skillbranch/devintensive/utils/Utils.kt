@@ -104,4 +104,17 @@ object Utils {
             else -> "$fNameInitial$lNameInitial"
         }).toUpperCase()
     }
+
+    fun getPluralForm(pluralForms: String, count: Int): String {
+        val forms = pluralForms.split(";")
+        when (count % 10) {
+            1 -> if (count % 100 != 11)
+                return forms[0]
+            in 2..4 -> if (count % 100 !in 12..14) {
+                return forms[1]
+            }
+        }
+
+        return forms[2]
+    }
     }
