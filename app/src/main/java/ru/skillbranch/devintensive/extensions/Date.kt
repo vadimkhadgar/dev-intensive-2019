@@ -43,7 +43,6 @@ fun Date.humanizeDiff(date: Date = Date()): String = when {
 
 }
 
-
 private fun pluralForm(value: Int, unit: TimeUnits): String {
     val form = when {
         value % 10 == 1 && value != 11 -> 0
