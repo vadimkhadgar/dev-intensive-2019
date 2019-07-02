@@ -9,8 +9,6 @@ const val SECOND = 1000L
 const val MINUTE = 60 * SECOND
 const val HOUR = 60 * MINUTE
 const val DAY = 23 * HOUR
-const val MONTH = 30 * DAY
-const val YEAR = 12 * MONTH
 
 fun Date.format(pattern: String = "HH:mm:ss dd.MM.yy"): String {
     val dateFormat = SimpleDateFormat(pattern, Locale("ru"))
@@ -25,8 +23,6 @@ fun Date.add(value: Int, units: TimeUnits = TimeUnits.SECOND): Date {
         TimeUnits.MINUTE -> value * MINUTE
         TimeUnits.HOUR -> value * HOUR
         TimeUnits.DAY -> value * DAY
-        TimeUnits.MONTH -> value * MONTH
-        TimeUnits.YEAR -> value * YEAR
     }
     this.time = time
     return this
@@ -37,9 +33,7 @@ enum class TimeUnits {
     SECOND,
     MINUTE,
     HOUR,
-    DAY,
-    MONTH,
-    YEAR
+    DAY
 }
 
 fun Date.humanizeDiff(date: Date = Date()): String {
