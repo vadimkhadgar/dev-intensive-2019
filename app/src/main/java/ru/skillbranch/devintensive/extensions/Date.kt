@@ -3,75 +3,72 @@ package ru.skillbranch.devintensive.extensions
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
-import ru.skillbranch.devintensive.extensions.TimeUnits.*
+
+private const val SECOND = 1000L
+private const val MINUTE = 60L * SECOND
+private const val HOUR = 60L * MINUTE
+private const val DAY = 24L * HOUR
 
 fun Date.format(pattern: String = "HH:mm:ss dd.MM.yy"): String {
     val dateFormat = SimpleDateFormat(pattern, Locale("ru"))
     return dateFormat.format(this)
 }
 
-fun Date.add(value: Int, units: TimeUnits = SECOND): Date {
-    this.time += units.value * value
-    return this
-}
-
-fun Date.humanizeDiff(date: Date = Date()): String {
-    val dif = abs(this.time -  date.time)
-    val isPast = this.time < date.time
-
-    return when {
-        dif <= SECOND.value -> {"только что"}
-        dif <= SECOND.value * 45 -> getTenseForm("несколько секунд", isPast)
-        dif <= SECOND.value * 75 -> getTenseForm("минуту", isPast)
-        dif <= MINUTE.value * 45 -> getTenseForm(getNormalizedInterval(dif, MINUTE), isPast)
-        dif <= MINUTE.value * 75 -> getTenseForm("час", isPast)
-        dif <= HOUR.value * 22 -> getTenseForm(getNormalizedInterval(dif, HOUR), isPast)
-        dif <= HOUR.value * 26 -> getTenseForm("день", isPast)
-        dif <= DAY.value * 360 -> getTenseForm(getNormalizedInterval(dif, DAY), isPast)
-        else -> if(isPast) "более года назад" else "более чем через год"
-    }
-}
-
-fun getTenseForm(interval: String, isPast: Boolean): String {
-    val prefix = if (isPast) "" else "через"
-    val postfix = if (isPast) "назад" else ""
-    return "$prefix $interval $postfix".trim()
-}
-
-fun getNormalizedInterval(dif: Long, units: TimeUnits): String {
-    val amount = dif / units.value
-    return "$amount ${getPluralForm(amount, units)}"
-}
-
-fun getPluralForm(amount: Long, units: TimeUnits): String {
-    val posAmount = abs(amount) % 100
-
-    return when(posAmount){
-        1L -> Plurals.ONE.get(units)
-        in 2..4 -> Plurals.FEW.get(units)
-        0L, in 5..19 -> Plurals.MANY.get(units)
-        else -> getPluralForm(posAmount % 10, units)
-    }
-}
-
-enum class Plurals(private val minute: String, private val hour: String, private val day: String){
-    ONE("минуту", "час", "день"),
-    FEW("минуты", "часа", "дня"),
-    MANY("минут", "часов", "дней");
-
-    fun get(unit: TimeUnits): String {
-        return when(unit){
-            MINUTE -> minute
-            HOUR -> hour
-            DAY -> day
-            else -> ""
+fun Date.add(value: Int, timeUnit: TimeUnits): Date {
+    return this.apply {
+        time += when (timeUnit) {
+            TimeUnits.SECOND -> value * SECOND
+            TimeUnits.DAY -> value * DAY
+            TimeUnits.HOUR -> value * HOUR
+            TimeUnits.MINUTE -> value * MINUTE
         }
     }
+
 }
 
-enum class TimeUnits(val value:Long){
-    SECOND(1000L),
-    MINUTE(60 * SECOND.value),
-    HOUR(60 * MINUTE.value),
-    DAY(24 * HOUR.value);
+fun Date.humanizeDiff(date: Date = Date()): String = when {
+    this == date -> "только что"
+    this.time < date.time - 365 * DAY -> "более года назад"
+    this.time > date.time + 365 * DAY -> "более чем через год"
+    else -> {
+        val template = if (this > date) "через %s" else "%s назад"
+        val (value, unit) = when (val diff = abs(this.time - date.time)) {
+            in 0 until MINUTE -> diff / SECOND to TimeUnits.SECOND
+            in MINUTE until HOUR -> diff / MINUTE to TimeUnits.MINUTE
+            in HOUR until DAY -> diff / HOUR to TimeUnits.HOUR
+            else -> diff / DAY to TimeUnits.DAY
+        }
+        template.format(pluralForm(value.toInt(), unit))
+    }
+
 }
+
+
+private fun pluralForm(value: Int, unit: TimeUnits): String {
+    val form = when {
+        value % 10 == 1 && value != 11 -> 0
+        value % 10 in 2..4 -> 1
+        else -> 2
+    }
+    return arrayListOf(
+        "%s секунда",
+        "%s секунды",
+        "%s секунд",
+        "%s минута",
+        "%s минуты",
+        "%s минут",
+        "%s час",
+        "%s часа",
+        "%s часов",
+        "%s день",
+        "%s дня",
+        "%s дней"
+    )[form + 3 * when (unit) {
+        TimeUnits.SECOND -> 0
+        TimeUnits.MINUTE -> 1
+        TimeUnits.HOUR -> 2
+        TimeUnits.DAY -> 3
+    }].format(value)
+}
+
+enum class TimeUnits { SECOND, MINUTE, HOUR, DAY }
