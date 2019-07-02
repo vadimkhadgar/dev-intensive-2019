@@ -28,7 +28,33 @@ fun Date.add(value: Int, units: TimeUnits = TimeUnits.SECOND): Date {
 }
 
 fun Date.humanizeDiff(date: Date = Date()): String {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
+TODO()
+//    val t: Int = 1
+//
+//
+//
+//       if (Date().add(t, units = TimeUnits.SECOND)<= 1 && Date().add(t, units = TimeUnits.SECOND >= 0)  "только что"
+//
+//        0 с -1 с "только что"
+//
+//            1с - 45 с "несколько секунд назад"
+//
+//        45 с -75 с "минуту назад"
+//
+//            75с - 45 мин "N минут назад"
+//
+//        45 мин -75 мин "час назад"
+//
+//            75мин
+//        22 ч "N часов назад"
+//
+//            22ч - 26 ч "день назад"
+//
+//        26 ч -360 д "N дней назад"
+//
+//                > 360 д "более года назад"
+//    }
 }
 
 enum class TimeUnits {

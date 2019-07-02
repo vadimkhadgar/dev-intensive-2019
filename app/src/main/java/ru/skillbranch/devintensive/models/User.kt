@@ -23,6 +23,7 @@ data class User(
 
     constructor(id: String) : this(id, "John", "Doe")
 
+
     init {
         println(
             "It's Alive!!! \n ${if (lastName === "Doe") "His name is $firstName $lastName." else "And his name is $firstName $lastName!!!"}\n"
@@ -44,5 +45,47 @@ data class User(
                 return User(id = "$lastId", firstName = firstName, lastName = lastName)
             }
         }
+
+
+
+
     }
+//    class Builder {
+//
+//
+//        var id: String? = null
+//            private set
+//        var firstName: String? = null
+//            private set
+//        var lastName: String? = null
+//            private set
+//        var avatar: String? = null
+//            private set
+//        var rating: Int = 0
+//            private set
+//        var respect: Int = 0
+//            private set
+//        var lastVisit: Date? = null
+//            private set
+//        var isOnline: Boolean = false
+//            private set
+//
+//        fun id(id: String): Builder  {
+//            this.id = id
+//            return this
+//        }
+//        fun firstName(firstName: String) = apply { this.firstName = firstName }
+//        fun lastName(lastName: String) = apply { this.lastName = lastName }
+//        fun avatar(avatar: String) = apply { this.avatar = avatar }
+//        fun rating(rating: Int) = apply { this.rating = rating }
+//        fun respect(respect: Int) = apply { this.respect = respect }
+//        fun lastVisit(lastVisit: Date) = apply { this.lastVisit = lastVisit }
+//        fun isOnline(isOnline: Boolean) = apply { this.isOnline = isOnline }
+//        fun build() = User(this)
+//
+//
+//    }
+
+
+
 }
