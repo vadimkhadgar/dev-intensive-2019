@@ -2,6 +2,7 @@ package ru.skillbranch.devintensive.extensions
 
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
 private const val SECOND = 1000L
@@ -26,98 +27,97 @@ fun Date.add(value: Int, timeUnit: TimeUnits): Date {
 
 }
 
-fun Date.humanizeDiff(date: Date = Date()): String{
-    val diff: Long
-    if(date.time == Date().time){
-        //сравниваем с внутренним состоянием
-        diff = this.time - Date().time
-    }
-    else{
-        //сравниваем с заданным в параметре
-        diff = date.getTime() - Date().time
+fun Date.humanizeDiff(): String {
+    var periodDate: Pair<Date, Date>
+
+    //    только что
+    periodDate = Pair(Date().add(1, TimeUnits.SECOND), Date().add(-1, TimeUnits.SECOND))
+    if (this.before(periodDate.first) && this.after(periodDate.second)) {
+        return "только что"
     }
 
-    if(diff < 0){
-        when(diff){
-            in -1*1000..0 -> return("только что")
-            in -45*1000..-1*1000+1 -> return("несколько секунд назад")
-            in -75*1000..-45*1000+1 -> return("минуту назад")
-            in -45*60*1000..-75*1000+1 -> {
-                val min: Int = -(diff/1000/60).toInt()
-                var minText = "минут"
-                when(min.toString().substring(min.toString().length-1).toInt()){
-                    1 -> minText = "минута"
-                    in (2..4) -> minText = "минуты"
-                }
-                if(min in (11..14)) minText = "минут"
-                return("$min $minText назад")
-            }
-            in -75*60*1000..-45*60*1000+1 -> return("час назад")
-            in -22*60*60*1000..-75*60*1000+1 -> {
-                val hours: Int = -(diff/1000/60/60).toInt()
-                var hourText = "часов"
-                when(hours.toString().substring(hours.toString().length-1).toInt()){
-                    1 -> hourText = "час"
-                    in (2..4) -> hourText = "часа"
-                }
-                if(hours in (11..14)) hourText = "часов"
-                return("$hours $hourText назад")
-            }
-            in -26*60*60*1000..-22*60*60*1000+1 -> return("день назад")
-            in -360*24*60*60*1000..-26*60*60*1000+1 -> {
-                val days: Int = -(diff/1000/60/60/24).toInt()
-                var daysText = "дней"
-                when(days.toString().substring(days.toString().length-1,1).toInt()){
-                    1 -> daysText = "день"
-                    in (2..4) -> daysText = "дня"
-                }
-                if(days in (11..14)) daysText = "дней"
-                return("$days $daysText назад")
-            }
-            else -> return("более года назад")
-        }
-    }
-    else{
-        when(diff){
-            in 0..1*1000 -> return("только что")
-            in 1*1000+1..45*1000 -> return("через несколько секунд")
-            in 45*1000+1..75*1000 -> return("через минуту")
-            in 75*1000+1..45*60*1000 -> {
-                val min: Int = (diff/1000/60).toInt()
-                var minText = "минут"
-                when(min.toString().substring(min.toString().length-1).toInt()){
-                    1 -> minText = "минута"
-                    in (2..4) -> minText = "минуты"
-                }
-                if(min in (11..14)) minText = "минут"
-                return("через $min $minText")
-            }
-            in 45*60*1000..75*60*1000 -> return("через час")
-            in 75*60*1000+1..22*60*60*1000 -> {
-                val hours: Int = (diff/1000/60/60).toInt()
-                var hourText = "часов"
-                when(hours.toString().substring(hours.toString().length-1).toInt()){
-                    1 -> hourText = "час"
-                    in (2..4) -> hourText = "часа"
-                }
-                if(hours in (11..14)) hourText = "часов"
-                return("через $hours $hourText")
-            }
-            in 22*60*60*1000+1..26*60*60*1000 -> return("через день")
-            in 26*60*60*1000+1..360*24*60*60*1000 -> {
-                val days: Int = (diff/1000/60/60/24).toInt()
-                var daysText = "дней"
-                when(days.toString().substring(days.toString().length-1).toInt()){
-                    1 -> daysText = "день"
-                    in (2..4) -> daysText = "дня"
-                }
-                if(days in (11..14)) daysText = "дней"
-                return("через $days $daysText")
-            }
-            else -> return("через год и более")
+    //    несколько секунд назад
+    periodDate = Pair(Date().add(45, TimeUnits.SECOND), Date().add(-45, TimeUnits.SECOND))
+    if (this.before(periodDate.first) && this.after(periodDate.second)) {
+        return when {
+            this.before(Date()) -> "несколько секунд назад"
+            else -> "через несколько секунд"
         }
     }
 
+    //    минуту назад
+    periodDate = Pair(Date().add(75, TimeUnits.SECOND), Date().add(-75, TimeUnits.SECOND))
+    if (this.before(periodDate.first) && this.after(periodDate.second)) {
+        return when {
+            this.before(Date()) -> "минуту назад"
+            else -> "через минуту"
+        }
+    }
+
+    //    N минут назад
+    periodDate = Pair(Date().add(45, TimeUnits.MINUTE), Date().add(-45, TimeUnits.MINUTE))
+    if (this.before(periodDate.first) && this.after(periodDate.second)) {
+        val duration = TimeUnit.MINUTES.convert((Date().time - this.time), TimeUnit.MILLISECONDS).toInt()
+        val plurals =  getPlurals(abs(duration), Triple("минуту", "минуты", "минут"))
+        return when {
+            duration > 0 -> "$duration $plurals назад"
+            else -> "через ${abs(duration)} $plurals"
+        }
+    }
+
+    //    час назад
+    periodDate = Pair(Date().add(75, TimeUnits.MINUTE), Date().add(-75, TimeUnits.MINUTE))
+    if (this.before(periodDate.first) && this.after(periodDate.second)) {
+        return when {
+            this.before(Date()) -> "час назад"
+            else -> "через час"
+        }
+    }
+
+    //    N часов назад
+    periodDate = Pair(Date().add(22, TimeUnits.HOUR), Date().add(-22, TimeUnits.HOUR))
+    if (this.before(periodDate.first) && this.after(periodDate.second)) {
+        val duration = TimeUnit.HOURS.convert((Date().time - this.time), TimeUnit.MILLISECONDS).toInt()
+        val plurals =  getPlurals(abs(duration), Triple("час", "часа", "часов"))
+        return when {
+            duration > 0 -> "$duration $plurals назад"
+            else -> "через ${abs(duration)} $plurals"
+        }
+    }
+
+    //    день назад
+    periodDate = Pair(Date().add(26, TimeUnits.HOUR), Date().add(-26, TimeUnits.HOUR))
+    if (this.before(periodDate.first) && this.after(periodDate.second)) {
+        return when {
+            this.before(Date()) -> "день назад"
+            else -> "через день"
+        }
+    }
+
+    //    N дней назад
+    periodDate = Pair(Date().add(360, TimeUnits.DAY), Date().add(-360, TimeUnits.DAY))
+    if (this.before(periodDate.first) && this.after(periodDate.second)) {
+        val duration = TimeUnit.DAYS.convert((Date().time - this.time), TimeUnit.MILLISECONDS).toInt()
+        val plurals =  getPlurals(abs(duration), Triple("день", "дня", "дней"))
+        return when {
+            duration > 0 -> "$duration $plurals назад"
+            else -> "через ${abs(duration)} $plurals"
+        }
+    }
+
+    return when {
+        this.before(Date()) -> "более года назад"
+        else -> "более чем через год"
+    }
+}
+
+fun getPlurals(value: Int, dict: Triple<String, String, String>): String {
+    return when {
+        value % 100 in 5..20 -> dict.third
+        value % 10 == 1 -> dict.first
+        value % 10 in 2..4 -> dict.second
+        else -> dict.third
+    }
 }
 
 enum class TimeUnits { SECOND, MINUTE, HOUR, DAY }
