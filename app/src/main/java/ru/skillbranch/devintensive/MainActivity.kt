@@ -1,27 +1,20 @@
 package ru.skillbranch.devintensive
 
-import android.app.Activity
-import android.content.Context
 import android.graphics.Color
 import android.graphics.PorterDuff
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.os.PersistableBundle
+import android.support.v7.app.AppCompatActivity
+import android.text.InputType
 import android.util.Log
-import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import ru.skillbranch.devintensive.extensions.hideKeyboard
 import ru.skillbranch.devintensive.models.Bender
-import android.content.Context.INPUT_METHOD_SERVICE
-import android.view.inputmethod.InputMethodManager
-import android.widget.TextView.OnEditorActionListener
-
+import ru.skillbranch.devintensive.models.Bender.Question
 
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
@@ -47,7 +40,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         val status = savedInstanceState?.getString("STATUS") ?: Bender.Status.NORMAL.name
         val question = savedInstanceState?.getString("QUESTION") ?: Bender.Question.NAME.name
-        benderObj = Bender(Bender.Status.valueOf(status), Bender.Question.valueOf(question))
+        benderObj = Bender(Bender.Status.valueOf(status), Question.valueOf(question))
         textTxt.text = benderObj.askQuestion()
 
         sendBtn.setOnClickListener(this)
@@ -80,29 +73,49 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(v: View?) {
         if (v?.id == R.id.iv_send) {
-            val (phrase, color) = benderObj.listenAnswer(messageEt.text.toString().toLowerCase())
-            messageEt.setText("")
-            val (r, g, b) = color
-            benderImage.setColorFilter(Color.rgb(r, g, b), PorterDuff.Mode.MULTIPLY)
-            textTxt.text = phrase
-            hideKeyboard()
+            if (isAnswerValid()) {
+                sendAnswer()
+            }
+        } else {
+            errorForUser()
         }
     }
 
-    fun actionDone() {
+    private fun actionDone() {
         et_message.setOnEditorActionListener { _, actionId, _ ->
-            if(actionId == EditorInfo.IME_ACTION_DONE){
-                val (phrase, color) = benderObj.listenAnswer(messageEt.text.toString().toLowerCase())
-                messageEt.setText("")
-                val (r, g, b) = color
-                benderImage.setColorFilter(Color.rgb(r, g, b), PorterDuff.Mode.MULTIPLY)
-                textTxt.text = phrase
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                sendAnswer()
                 hideKeyboard()
                 true
             } else {
                 false
             }
         }
+    }
+
+    private fun errorForUser() {
+        val errorMessage = when (benderObj.question) {
+            Question.NAME -> "Имя должно начинаться с заглавной буквы"
+            Question.PROFESSION -> "Профессия должна начинаться со строчной буквы"
+            Question.MATERIAL -> "Материал не должен содержать цифр"
+            Question.BDAY -> "Год моего рождения должен содержать только цифры"
+            Question.SERIAL -> "Серийный номер содержит только цифры, и их 7"
+            else -> "На этом все, вопросов больше нет"
+        }
+        textTxt.text = "$errorMessage \n ${benderObj.question.question}"
+        messageEt.setText("")
+    }
+
+    private fun isAnswerValid(): Boolean {
+        return benderObj.question.validate(messageEt.text.toString())
+    }
+
+    private fun sendAnswer() {
+        val (phase, color) = benderObj.listenAnswer(messageEt.text.toString().toLowerCase())
+        messageEt.setText("")
+        val (r, g, b) = color
+        benderImage.setColorFilter(Color.rgb(r, g, b), PorterDuff.Mode.MULTIPLY)
+        textTxt.text = phase
     }
 }
 
