@@ -3,12 +3,14 @@ package ru.skillbranch.devintensive
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.text.InputType
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import ru.skillbranch.devintensive.models.Bender
@@ -87,5 +89,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         super.onSaveInstanceState(outState)
         outState?.putString("STATUS", benderObj.status.name)
         outState?.putString("QUESTION", benderObj.question.name)
+    }
+
+    override fun onRestart() {
+        Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
+        super.onRestart()
     }
 }
