@@ -90,9 +90,4 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         outState?.putString("STATUS", benderObj.status.name)
         outState?.putString("QUESTION", benderObj.question.name)
     }
-
-    override fun onRestart() {
-        Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
-        super.onRestart()
-    }
 }
